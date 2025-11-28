@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HackLaunch | Student Deployment Platform</title>
+    <style>
+        /* --- 1. DESIGN SYSTEM & VARIABLES --- */
+        :root {
+            /* Colors */
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --bg-body: #f8fafc;
+            --bg-card: #ffffff;
+            --bg-terminal: #0f172a;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            
+            /* Spacing & Radius */
+            --radius: 12px;
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            --font-mono: "Fira Code", monospace;
+        }
+
+        /* Dark Mode Override */
+        [data-theme="dark"] {
+            --bg-body: #0f172a;
+            --bg-card: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+        }
+
+        /* --- 2. GLOBAL STYLES --- */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            line-height: 1.6;
+            transition: background 0.3s, color 0.3s;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        a { text-decoration: none; color: var(--primary); cursor: pointer; }
+        ul { list-style: none; }
+
+        /* --- 3. COMPONENTS --- */
+        
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius);
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.95rem;
+        }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); }
+        .btn-outline { border: 2px solid var(--border); background: transparent; color: var(--text-main); }
+        .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+        .btn-full { width: 100%; }
+
+        /* Inputs */
+        .input-group { margin-bottom: 1rem; text-align: left; }
+        label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem; }
+        input, select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            background: var(--bg-card);
+            color: var(--text-main);
+            font-size: 1rem;
+        }
+        input:focus { outline: 2px solid var(--primary); border-color: transparent; }
+
+        /* Cards */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+        }
+
+        /* Badges */
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 99px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .badge.live { background: #dcfce7; color: #166534; }
+        .badge.down { background: #fee2e2; color: #991b1b; }
+
+        /* --- 4. LAYOUTS --- */
+        
+        /* Navbar */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border);
+        }
+        .logo { font-weight: 800; font-size: 1.5rem; color: var(--primary); display: flex; align-items: center; gap: 0.5rem; }
+        
+        /* Views Container */
+        main { flex: 1; padding: 2rem; max-width: 1200px; margin: 0 auto; width: 100%; }
+        
+        /* View Utilities */
+        .view-section { display: none; animation: fadeIn 0.4s ease; }
+        .view-section.active { display: block; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- VIEW: LOGIN --- */
+        #login-view {
+            max-width: 400px;
+            margin: 4rem auto;
+            text-align: center;
+        }
+        .social-btn {
+            width: 100%; margin-bottom: 0.75rem; 
+            border: 1px solid var(--border); background: var(--bg-card);
+        }
+
+        /* --- VIEW: DASHBOARD --- */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        .project-card { transition: transform 0.2s; position: relative; }
+        .project-card:hover { transform: translateY(-4px); border-color: var(--primary); }
+        .card-top { display: flex; justify-content: space-between; margin-bottom: 1rem; }
+        .repo-info { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem; }
+
+        /* --- VIEW: DEPLOY WIZARD --- */
+        .wizard-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+        .terminal {
+            background: var(--bg-terminal);
+            color: #10b981;
+            font-family: var(--font-mono);
+            padding: 1.5rem;
+            border-radius: var(--radius);
+            height: 400px;
+            overflow-y: auto;
+            font-size: 0.9rem;
+            border: 1px solid #334155;
+        }
+        .log-line { margin-bottom: 0.5rem; display: block; }
+        .log-line.error { color: var(--danger); }
+        .log-line.info { color: #94a3b8; }
+        
+        /* Loading Spinner */
+        .spinner {
+            width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3); 
+            border-radius: 50%; border-top-color: white; animation: spin 1s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Responsive */
+        @media(max-width: 768px) {
+            .wizard-layout { grid-template-columns: 1fr; }
+            header { padding: 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">
+            <span>🚀</span> HackLaunch
+        </div>
+        <nav id="nav-actions" style="display: none;">
+            <button class="btn btn-outline" id="theme-toggle" aria-label="Toggle Light/Dark Theme">🌙</button>
+            <button class="btn btn-outline" onclick="app.logout()">Sign Out</button>
+        </nav>
+    </header>
+
+    <main>
+        <section id="login-view" class="view-section active">
+            <div class="card">
+                <h1 style="margin-bottom: 0.5rem;">Student Login</h1>
+                <p style="color: var(--text-muted); margin-bottom: 2rem;">Deploy your hackathon project in one click.</p>
+                
+                <button class="btn social-btn" onclick="app.login()">
+                    <span>GitHub</span>
+                </button>
+                <button class="btn social-btn" onclick="app.login()">
+                    <span>University SSO</span>
+                </button>
+
+                <div style="margin: 1.5rem 0; border-top: 1px solid var(--border); position: relative;">
+                    <span style="background: var(--bg-card); padding: 0 10px; position: absolute; top: -12px; left: 50%; transform: translateX(-50%); color: var(--text-muted); font-size: 0.8rem;">OR</span>
+                </div>
+
+                <form onsubmit="event.preventDefault(); app.login();">
+                    <div class="input-group">
+                        <label for="login-email">Email Address</label>
+                        <input type="email" id="login-email" placeholder="student@university.edu" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full">Send Magic Link</button>
+                </form>
+            </div>
+        </section>
+
+        <section id="dashboard-view" class="view-section">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h2>My Projects</h2>
+                <button class="btn btn-primary" onclick="app.router('deploy-view')">+ New Deployment</button>
+            </div>
+            
+            <div style="margin-top: 1rem; gap: 0.5rem; display: flex;">
+                <button class="badge" style="border: 1px solid var(--border); cursor: pointer; background: var(--bg-card);">All</button>
+                <button class="badge" style="border: 1px solid var(--border); cursor: pointer; background: var(--bg-card);">Live</button>
+                <button class="badge" style="border: 1px solid var(--border); cursor: pointer; background: var(--bg-card);">Failed</button>
+            </div>
+
+            <div id="project-grid" class="grid-container">
+                
+
+[Image of project dashboard card grid UI]
+
+            </div>
+        </section>
+
+        <section id="deploy-view" class="view-section">
+            <button class="btn btn-outline" onclick="app.router('dashboard-view')" style="margin-bottom: 1rem;">← Back</button>
+            
+            <div class="wizard-layout">
+                <div class="card">
+                    <h2>Configure Deployment</h2>
+                    <p class="text-muted" style="margin-bottom: 1.5rem;">Connect your repository and choose settings.</p>
+                    
+                    <form onsubmit="event.preventDefault(); app.startDeploy();">
+                        <div class="input-group">
+                            <label for="repo-url">Git Repository URL</label>
+                            <input type="url" id="repo-url" placeholder="https://github.com/user/repo" required>
+                        </div>
+                        
+                        <div class="input-group">
+                            <label for="project-name">Project Name</label>
+                            <input type="text" id="project-name" placeholder="my-awesome-hack" required>
+                        </div>
+
+                        <div class="input-group">
+                            <label for="framework-select">Framework (Auto-detected)</label>
+                            <select id="framework-select">
+                                <option value="react">React / Vite (Frontend)</option>
+                                <option value="node">Node.js / Express (Backend)</option>
+                                <option value="python">Python / Flask (Backend)</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" id="deploy-btn" class="btn btn-primary btn-full">
+                            🚀 Deploy Now
+                        </button>
+                    </form>
+                </div>
+
+                <div class="terminal-wrapper">
+                    <h3 style="margin-bottom: 1rem; color: var(--text-main);">Live Deployment Log</h3>
+                    <div class="terminal" id="log-container">
+                        <div class="log-line info">Waiting for deployment to start...</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        class HackLaunchApp {
+            constructor() {
+                this.state = {
+                    isLoggedIn: false,
+                    theme: localStorage.getItem('hl_theme') || 'light',
+                    projects: [
+                        { id: 1, name: "EcoTrack-24", framework: "React", status: "Live", url: "#", lastDeploy: "2m ago" },
+                        { id: 2, name: "FinTech-Backend", framework: "Node.js", status: "Down", url: "#", lastDeploy: "2 days ago" }
+                    ]
+                };
+
+                this.init();
+            }
+
+            init() {
+                // Apply saved theme immediately
+                document.documentElement.setAttribute('data-theme', this.state.theme);
+
+                // Check session (mock)
+                if(sessionStorage.getItem('hl_session')) {
+                    this.state.isLoggedIn = true;
+                    this.updateNav();
+                    this.router('dashboard-view');
+                }
+
+                // Theme Listener
+                document.getElementById('theme-toggle').addEventListener('click', () => {
+                    this.state.theme = this.state.theme === 'light' ? 'dark' : 'light';
+                    document.documentElement.setAttribute('data-theme', this.state.theme);
+                    localStorage.setItem('hl_theme', this.state.theme);
+                    document.getElementById('theme-toggle').innerText = this.state.theme === 'dark' ? '☀️' : '🌙';
+                });
+                document.getElementById('theme-toggle').innerText = this.state.theme === 'dark' ? '☀️' : '🌙';
+            }
+
+            // --- 1. ROUTING ---
+            router(viewId) {
+                // Hide all views
+                document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+                // Show target view
+                document.getElementById(viewId).classList.add('active');
+                
+                if(viewId === 'dashboard-view') this.renderDashboard();
+                
+                // Accessibility: Set focus to main content (Simulated SPA focus management)
+                document.querySelector('main').focus(); 
+            }
+
+            // --- 2. AUTHENTICATION ---
+            login() {
+                // Simulate API Call
+                const btn = document.querySelector('.social-btn');
+                btn.innerHTML = '<div class="spinner"></div> Authenticating...';
+                
+                setTimeout(() => {
+                    this.state.isLoggedIn = true;
+                    // Use sessionStorage for token/session flag (clears when tab closes)
+                    sessionStorage.setItem('hl_session', 'true'); 
+                    this.updateNav();
+                    this.router('dashboard-view');
+                }, 1000);
+            }
+
+            logout() {
+                this.state.isLoggedIn = false;
+                sessionStorage.removeItem('hl_session');
+                this.updateNav();
+                this.router('login-view');
+                // Reset Login Buttons
+                document.querySelector('.social-btn:nth-child(2)').innerHTML = '<span>GitHub</span>';
+            }
+
+            updateNav() {
+                const nav = document.getElementById('nav-actions');
+                nav.style.display = this.state.isLoggedIn ? 'flex' : 'none';
+                nav.style.gap = '10px';
+            }
+
+            // --- 3. DASHBOARD LOGIC ---
+            renderDashboard() {
+                const grid = document.getElementById('project-grid');
+                grid.innerHTML = ''; 
+
+                this.state.projects.forEach(proj => {
+                    const statusClass = proj.status === 'Live' ? 'live' : 'down';
+                    
+                    const card = document.createElement('article');
+                    card.className = 'card project-card';
+                    card.setAttribute('tabindex', '0'); // Make cards keyboard focusable
+                    card.innerHTML = `
+                        <div class="card-top">
+                            <span class="badge ${statusClass}">${proj.status}</span>
+                            <small class="text-muted">Updated: ${proj.lastDeploy}</small>
+                        </div>
+                        <h3>${proj.name}</h3>
+                        <p class="repo-info">Framework: ${proj.framework}</p>
+                        <div style="display:flex; gap:10px; margin-top:auto;">
+                            <button class="btn btn-outline" style="flex:1; padding:0.5rem;" onclick="alert('Opening Live URL...')">View Portfolio</button>
+                            <button class="btn btn-primary" style="flex:1; padding:0.5rem;" onclick="app.router('deploy-view')">Manage</button>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+            }
+
+            // --- 4. DEPLOY WIZARD LOGIC (Updated for Combined Deploy) ---
+            startDeploy() {
+                const btn = document.getElementById('deploy-btn');
+                const terminal = document.getElementById('log-container');
+                const repo = document.getElementById('repo-url').value;
+                const name = document.getElementById('project-name').value;
+                const framework = document.getElementById('framework-select').value;
+                
+                btn.disabled = true;
+                btn.innerHTML = '<div class="spinner"></div> Deploying...';
+                terminal.innerHTML = ''; 
+
+                // --- Combined Build Steps Simulation ---
+                const steps = [
+                    { msg: `> Initiating connection to repository: ${repo}`, delay: 500, type: 'info' },
+                    { msg: `> Cloning repository and detecting stack...`, delay: 1500, type: 'info' },
+                    { msg: `> Running **Frontend Build** (npm run build)...`, delay: 3000 },
+                    { msg: `> Optimizing static assets and generating /dist...`, delay: 4500 },
+                    { msg: `> Copying /dist assets into **Backend Server** folder (/server/public)...`, delay: 6000, type: 'info' },
+                    { msg: `> Running **Backend Deployment** setup (install server dependencies)...`, delay: 7500 },
+                    { msg: `> Configuring Express/Flask server to serve frontend index.html on catch-all route (*)...`, delay: 9000 },
+                    { msg: `> Final package upload and service startup...`, delay: 10500 },
+                    { msg: `SUCCESS: Combined deployment is **Live** at https://${name || 'app'}.hacklaunch.app`, delay: 12000, type: 'success' }
+                ];
+
+                steps.forEach(step => {
+                    setTimeout(() => {
+                        this.addLog(step.msg, step.type);
+                        
+                        if(step.type && step.type.includes('success')) {
+                            this.state.projects.unshift({
+                                id: Date.now(),
+                                name: name || "New Project",
+                                framework: framework,
+                                status: "Live",
+                                lastDeploy: "Just now"
+                            });
+                            btn.innerHTML = "Deployed! (Rollback)";
+                            btn.disabled = false;
+                        }
+                    }, step.delay);
+                });
+            }
+
+            addLog(msg, type = '') {
+                const terminal = document.getElementById('log-container');
+                const line = document.createElement('div');
+                line.className = `log-line ${type}`;
+                
+                const time = new Date().toLocaleTimeString('en-US', { hour12: false });
+                line.innerHTML = `[${time}] ${msg}`;
+                
+                terminal.appendChild(line);
+                terminal.scrollTop = terminal.scrollHeight; // Auto-scroll
+            }
+        }
+
+        // Initialize App
+        const app = new HackLaunchApp();
+    </script>
+</body>
+</html>
